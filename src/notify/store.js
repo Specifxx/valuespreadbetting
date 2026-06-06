@@ -6,8 +6,11 @@
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const FILE = new URL("../../data/notified.json", import.meta.url).pathname;
+// fileURLToPath (not .pathname) so the drive letter is handled correctly on
+// Windows — ".pathname" yields "/C:/..." which breaks mkdir/readFile there.
+const FILE = fileURLToPath(new URL("../../data/notified.json", import.meta.url));
 
 let cache = null;
 

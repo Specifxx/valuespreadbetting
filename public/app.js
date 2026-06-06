@@ -25,8 +25,15 @@ function render(data) {
   $("last-scan").textContent = data.lastScan ? timeAgo(data.lastScan) : "—";
 
   const badge = $("source-badge");
-  badge.textContent = (data.source ?? "—").toUpperCase();
-  badge.className = "badge " + (data.source === "live" ? "live" : "demo");
+  const isReal = data.source === "oddsapi" || data.source === "live";
+  const label = data.source === "oddsapi" ? "LIVE · ODDS API" : (data.source ?? "—").toUpperCase();
+  badge.textContent = isReal && data.meta?.creditsRemaining != null
+    ? `${label} · ${data.meta.creditsRemaining} credits left`
+    : label;
+  badge.className = "badge " + (isReal ? "live" : "demo");
+
+  // Demo-data warning banner.
+  $("demo-banner").classList.toggle("hidden", data.source !== "demo");
 
   // error banner
   if (data.lastError) {
@@ -48,7 +55,7 @@ function render(data) {
       return `
       <tr class="${isNew ? "new-flash" : ""}">
         <td><span class="edge-pill">+${o.edgePct}%</span></td>
-        <td>${escapeHtml(o.event)}<div class="muted">${o.sport.toUpperCase()}${o.league ? " · " + escapeHtml(o.league) : ""}</div></td>
+        <td>${o.inPlay ? '<span class="live-tag">● LIVE</span> ' : ""}${escapeHtml(o.event)}<div class="muted">${o.sport.toUpperCase()}${o.league ? " · " + escapeHtml(o.league) : ""}</div></td>
         <td>${escapeHtml(o.market)}</td>
         <td><strong>${escapeHtml(o.selection)}</strong></td>
         <td class="odds sb">${o.sportsbetOdds.toFixed(2)}</td>

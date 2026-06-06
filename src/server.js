@@ -19,6 +19,7 @@ export function createServer() {
       lastScan: state.lastScan,
       lastError: state.lastError,
       source: state.source,
+      meta: state.meta,
       eventsCompared: state.eventsCompared,
       config: state.config,
     });

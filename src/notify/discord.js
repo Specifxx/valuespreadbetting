@@ -55,7 +55,7 @@ function toEmbed(opp) {
     ? `<t:${Math.floor(new Date(opp.commenceTime).getTime() / 1000)}:R>`
     : "n/a";
   return {
-    title: `${opp.event} — back ${opp.selection}`,
+    title: `${opp.inPlay ? "🔴 LIVE · " : ""}${opp.event} — back ${opp.selection}`,
     description: `**${opp.sport.toUpperCase()}** · ${opp.market}`,
     color: 0x2ecc71,
     fields: [

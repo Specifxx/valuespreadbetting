@@ -16,4 +16,17 @@ export const config = {
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
+
+  // The Odds API (ODDS_SOURCE=oddsapi)
+  oddsApiKey: process.env.ODDS_API_KEY || "",
+  oddsApiRegions: process.env.ODDS_API_REGIONS || "au",
+  oddsApiMarkets: process.env.ODDS_API_MARKETS || "h2h,spreads,totals",
+  // Reference ("gold standard") book, as a priority list — first one present in
+  // the feed for a given game wins. bet365 first, Pinnacle as a sharp fallback.
+  referenceBooks: (process.env.REFERENCE_BOOK || "bet365,pinnacle")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+  // Book we actually place the bet on.
+  targetBook: (process.env.TARGET_BOOK || "sportsbet").trim().toLowerCase(),
 };

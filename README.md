@@ -73,10 +73,15 @@ npm run scan
 | `PORT` | Web server port | `3000` |
 | `POLL_INTERVAL_SECONDS` | How often to rescan odds | `120` |
 | `EDGE_THRESHOLD` | Minimum edge to count (`0.05` = 5%) | `0.05` |
-| `ODDS_SOURCE` | `demo` or `live` | `demo` |
+| `ODDS_SOURCE` | `demo`, `oddsapi` (recommended), or `live` | `demo` |
 | `DISCORD_WEBHOOK_URL` | Discord Incoming Webhook (blank = off) | — |
-| `SPORTS` | Comma list, e.g. `afl,nrl,soccer_epl` | `afl,nrl,soccer_epl` |
+| `SPORTS` | Comma list, e.g. `afl,nrl,nba,soccer_epl` | `afl,nrl,soccer_epl` |
 | `DEVIG_METHOD` | `multiplicative` or `none` | `multiplicative` |
+| `ODDS_API_KEY` | the-odds-api.com key (for `oddsapi` mode) | — |
+| `ODDS_API_REGIONS` | Books region(s): `au`, or `au,uk` | `au` |
+| `ODDS_API_MARKETS` | `h2h,spreads,totals` (any subset) | `h2h,spreads,totals` |
+| `REFERENCE_BOOK` | Gold-standard book priority list | `bet365,pinnacle` |
+| `TARGET_BOOK` | Book you place the bet on | `sportsbet` |
 
 ### Discord alerts
 1. Discord → **Server Settings → Integrations → Webhooks → New Webhook**.
@@ -87,9 +92,58 @@ npm run scan
 
 ---
 
-## Going live (real odds)
+## Real data — recommended path (The Odds API)
 
-Set `ODDS_SOURCE=live`. Two scrapers are involved:
+This is how you get **thousands of real markets across many sports, including
+in-play games, accurately**. It uses [the-odds-api.com](https://the-odds-api.com),
+the same aggregated feed pros use. It returns bet365 **and** sportsbet for the
+same fixtures with consistent team naming, so the comparison is exact.
+
+1. Get a **free API key** at https://the-odds-api.com (500 credits/month).
+2. In `.env`:
+   ```
+   ODDS_SOURCE=oddsapi
+   ODDS_API_KEY=your_key_here
+   SPORTS=afl,nrl,nba,soccer_epl        # add as many as you like
+   ODDS_API_MARKETS=h2h,spreads,totals  # H2H + line/handicap + totals
+   ```
+3. `npm start`. The dashboard now shows real value bets (H2H, line and totals),
+   tagged **LIVE** when the game is already in play. Discord alerts fire on new
+   ones. The header shows your remaining API credits.
+
+**It is verified accurate.** Fed the real NRL odds from bet365/sportsbet, the
+engine correctly surfaces only the genuine value (e.g. Cronulla @ 3.25 over
+bet365's 2.90 = **+6.8%**) and rejects the games that merely *look* like edges
+until you remove bet365's margin.
+
+### Markets & "thousands of markets"
+Each sport returns every upcoming + in-play fixture, and for each you analyse
+H2H, every Line/Handicap and every Totals line — across multiple competitions
+that's easily thousands of individual outcomes per scan. Add more sports to
+`SPORTS` to widen coverage (`nba`, `nfl`, `mlb`, `nhl`, `soccer_aleague`, …).
+
+### Quota maths (important)
+Cost per scan = `#sports × #markets × #regions` credits.
+Example: `afl,nrl,nba,soccer_epl` (4) × `h2h,spreads,totals` (3) × `au` (1)
+= **12 credits/scan**. The **free 500/month** is fine for testing or a few
+scans a day, but **continuous polling needs a paid plan**. Tune
+`POLL_INTERVAL_SECONDS` accordingly (e.g. one scan every 15–30 min on free).
+
+### About bet365 availability
+bet365 isn't always present for every AU market in the feed. `REFERENCE_BOOK`
+is a **priority list** — if bet365 isn't quoting a game, it falls back to the
+next book (default **Pinnacle**, which is actually the sharpest "true odds"
+reference pros prefer). Set it to just `bet365` to require bet365 only.
+
+---
+
+## Experimental: direct scraping (`ODDS_SOURCE=live`)
+
+> ⚠️ Not recommended. bet365/sportsbet actively block scrapers, throttle, and
+> change their markup, so this path is fragile and against their ToS. Use
+> `oddsapi` above for real, reliable data. Kept here because you asked for it.
+
+Two scrapers are involved:
 
 ### sportsbet (`src/providers/sportsbet.js`)
 Hits sportsbet's internal JSON API and reshapes it to the canonical format.

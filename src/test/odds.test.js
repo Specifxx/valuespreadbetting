@@ -117,6 +117,62 @@ test("the deliberately sub-threshold demo edge is excluded at 5%", () => {
   assert.ok(!opps.some((o) => o.selection === "Sydney Swans"));
 });
 
+test("totals market: de-vigs per line and matches Over/Under by point", () => {
+  // bet365 totals @ 52.5: Over 1.90 / Under 1.95
+  const gold = [
+    { name: "Over", odds: 1.9, point: 52.5 },
+    { name: "Under", odds: 1.95, point: 52.5 },
+  ];
+  // sportsbet pays Over generously
+  const bet = [
+    { name: "Over", odds: 2.15, point: 52.5 },
+    { name: "Under", odds: 1.85, point: 52.5 },
+  ];
+  const results = evaluateMarket(gold, bet);
+  const over = results.find((r) => r.name === "Over");
+  assert.equal(over.point, 52.5);
+  assert.ok(over.edge > 0.05, `expected value on Over, got ${over.edge}`);
+});
+
+test("line market: never compares mismatched handicaps", () => {
+  // gold has the main line -4.5; sportsbet only offers -6.5 -> no comparison
+  const gold = [
+    { name: "Penrith", odds: 1.91, point: -4.5 },
+    { name: "Wests", odds: 1.91, point: 4.5 },
+  ];
+  const bet = [
+    { name: "Penrith", odds: 2.5, point: -6.5 },
+    { name: "Wests", odds: 1.5, point: 6.5 },
+  ];
+  const results = evaluateMarket(gold, bet);
+  assert.equal(results.length, 0, "different lines must not be matched");
+});
+
+test("alternate lines in one market are de-vigged independently", () => {
+  // two coherent two-way totals (50.5 and 55.5) bundled together
+  const gold = [
+    { name: "Over", odds: 1.8, point: 50.5 },
+    { name: "Under", odds: 2.0, point: 50.5 },
+    { name: "Over", odds: 2.4, point: 55.5 },
+    { name: "Under", odds: 1.55, point: 55.5 },
+  ];
+  const bet = [
+    { name: "Over", odds: 1.85, point: 50.5 },
+    { name: "Under", odds: 2.05, point: 50.5 },
+    { name: "Over", odds: 2.5, point: 55.5 },
+    { name: "Under", odds: 1.6, point: 55.5 },
+  ];
+  const results = evaluateMarket(gold, bet);
+  // each line's two true-probs should sum to ~1 independently
+  const byLine = (p) => results.filter((r) => r.point === p);
+  for (const p of [50.5, 55.5]) {
+    const probs = byLine(p);
+    // recompute via trueProb fields present on results
+    const sum = probs.reduce((a, r) => a + r.trueProb, 0);
+    approx(sum, 1, 1e-9);
+  }
+});
+
 test("lowering the threshold surfaces more opportunities", () => {
   const { bet365, sportsbet } = getDemoSnapshot();
   const strict = findOpportunities(bet365, sportsbet, { edgeThreshold: 0.05 });

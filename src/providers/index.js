@@ -6,12 +6,19 @@
 import { getDemoSnapshot } from "./demo.js";
 import { getSportsbetEvents } from "./sportsbet.js";
 import { getBet365Events } from "./bet365.js";
+import { getOddsApiSnapshot } from "./oddsapi.js";
 
 /**
  * @param {object} config
  * @returns {Promise<{ bet365: Array, sportsbet: Array, source: string }>}
  */
 export async function getSnapshot(config) {
+  // Recommended real-data path: The Odds API (reliable, legal, thousands of
+  // markets across many sports, includes in-play games).
+  if (config.oddsSource === "oddsapi") {
+    return getOddsApiSnapshot(config);
+  }
+
   if (config.oddsSource === "live") {
     // Fetch both books in parallel; surface either failure clearly.
     const [bet365, sportsbet] = await Promise.all([

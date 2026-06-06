@@ -8,7 +8,15 @@ const DEFAULT_HEADERS = {
   "Accept-Language": "en-AU,en;q=0.9",
 };
 
-export async function getJson(url, { headers = {}, timeoutMs = 12000 } = {}) {
+export async function getJson(url, opts = {}) {
+  return (await getJsonMeta(url, opts)).body;
+}
+
+/**
+ * Like getJson but also returns selected response headers — used to read
+ * The Odds API quota headers (x-requests-remaining / x-requests-used).
+ */
+export async function getJsonMeta(url, { headers = {}, timeoutMs = 12000 } = {}) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -17,9 +25,14 @@ export async function getJson(url, { headers = {}, timeoutMs = 12000 } = {}) {
       signal: controller.signal,
     });
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status} for ${url}`);
+      const snippet = (await res.text().catch(() => "")).slice(0, 200);
+      throw new Error(`HTTP ${res.status} for ${url} ${snippet}`);
     }
-    return await res.json();
+    return {
+      body: await res.json(),
+      remaining: res.headers.get("x-requests-remaining"),
+      used: res.headers.get("x-requests-used"),
+    };
   } finally {
     clearTimeout(t);
   }

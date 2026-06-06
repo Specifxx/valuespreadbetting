@@ -16,7 +16,11 @@ export const state = {
   lastError: null,
   source: config.oddsSource,
   eventsCompared: 0,
+  meta: {},
   config: {
+    referenceBook: config.referenceBooks?.[0] ?? null,
+    targetBook: config.targetBook,
+    markets: config.oddsApiMarkets,
     edgeThreshold: config.edgeThreshold,
     devigMethod: config.devigMethod,
     pollIntervalSeconds: config.pollIntervalSeconds,
@@ -28,7 +32,7 @@ export const state = {
 /** Run a single scan. Returns the opportunities found. */
 export async function runScan() {
   try {
-    const { bet365, sportsbet, source } = await getSnapshot(config);
+    const { bet365, sportsbet, source, meta } = await getSnapshot(config);
     const opportunities = findOpportunities(bet365, sportsbet, {
       edgeThreshold: config.edgeThreshold,
       devigMethod: config.devigMethod,
@@ -38,6 +42,7 @@ export async function runScan() {
     state.lastScan = new Date().toISOString();
     state.lastError = null;
     state.source = source;
+    state.meta = meta ?? {};
     state.eventsCompared = Math.min(bet365.length, sportsbet.length);
 
     // Discord: only NEW opportunities.

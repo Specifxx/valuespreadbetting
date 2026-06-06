@@ -28,17 +28,21 @@ export function findOpportunities(goldEvents, betEvents, opts = {}) {
       });
       for (const ev of evals) {
         if (ev.edge >= edgeThreshold) {
+          const selection =
+            ev.point == null ? ev.name : `${ev.name} ${formatPoint(ev.point)}`;
           opportunities.push({
-            id: opportunityId(gold, mp.marketKey, ev.name),
+            id: opportunityId(gold, mp.marketKey, selection),
             sport: gold.sport,
             league: gold.league ?? null,
             event: `${gold.homeTeam} v ${gold.awayTeam}`,
             homeTeam: gold.homeTeam,
             awayTeam: gold.awayTeam,
             commenceTime: gold.commenceTime,
+            inPlay: Boolean(gold.inPlay),
             market: mp.marketName,
             marketKey: mp.marketKey,
-            selection: ev.name,
+            selection,
+            point: ev.point,
             bet365Odds: round(ev.goldOdds, 3),
             sportsbetOdds: round(ev.betOdds, 3),
             trueProbability: round(ev.trueProb, 4),
@@ -67,4 +71,9 @@ export function opportunityId(event, marketKey, selection) {
 function round(n, dp) {
   const f = 10 ** dp;
   return Math.round(n * f) / f;
+}
+
+/** "+4.5" / "-6.5" for handicaps, plain number for totals lines. */
+function formatPoint(point) {
+  return point > 0 ? `+${point}` : `${point}`;
 }

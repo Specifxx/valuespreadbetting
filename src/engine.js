@@ -3,7 +3,7 @@
 // Holds the latest results in memory for the web API to serve.
 // ---------------------------------------------------------------------------
 
-import { config } from "./config.js";
+import { config, creditsPerScan } from "./config.js";
 import { getSnapshot } from "./providers/index.js";
 import { findOpportunities } from "./core/opportunities.js";
 import { sendDiscordAlerts } from "./notify/discord.js";
@@ -17,7 +17,11 @@ export const state = {
   source: config.oddsSource,
   eventsCompared: 0,
   meta: {},
+  creditsRemaining: null, // last-known API credits (oddsapi mode)
+  budgetPaused: false, // auto-scan paused to protect free-tier quota
   config: {
+    creditsPerScan: config.oddsSource === "oddsapi" ? creditsPerScan(config) : null,
+    minCreditsReserve: config.minCreditsReserve,
     referenceBook: config.referenceBooks?.[0] ?? null,
     targetBook: config.targetBook,
     markets: config.oddsApiMarkets,
@@ -29,8 +33,27 @@ export const state = {
   },
 };
 
-/** Run a single scan. Returns the opportunities found. */
-export async function runScan() {
+/**
+ * Run a single scan. Returns the opportunities found.
+ * @param {object} [opts]
+ * @param {boolean} [opts.force] - bypass the credit-budget guard (manual refresh)
+ */
+export async function runScan(opts = {}) {
+  // Credit-budget guard: in oddsapi mode, stop auto-scanning before we'd dip
+  // below the reserve, so the monthly free quota isn't silently drained.
+  if (config.oddsSource === "oddsapi" && !opts.force && state.creditsRemaining != null) {
+    const needed = creditsPerScan(config) + config.minCreditsReserve;
+    if (state.creditsRemaining < needed) {
+      state.budgetPaused = true;
+      state.lastError =
+        `Auto-scan paused: ${state.creditsRemaining} API credits left ` +
+        `(reserve ${config.minCreditsReserve}). Use Refresh to force, raise ` +
+        `POLL_INTERVAL_SECONDS, or upgrade your the-odds-api.com plan.`;
+      console.warn(`[scan] ${state.lastError}`);
+      return state.opportunities;
+    }
+  }
+
   try {
     const { bet365, sportsbet, source, meta } = await getSnapshot(config);
     const opportunities = findOpportunities(bet365, sportsbet, {
@@ -43,6 +66,11 @@ export async function runScan() {
     state.lastError = null;
     state.source = source;
     state.meta = meta ?? {};
+    state.budgetPaused = false;
+    if (meta?.creditsRemaining != null) {
+      const n = Number(meta.creditsRemaining);
+      state.creditsRemaining = Number.isFinite(n) ? n : state.creditsRemaining;
+    }
     state.eventsCompared = Math.min(bet365.length, sportsbet.length);
 
     // Discord: only NEW opportunities.

@@ -7,7 +7,7 @@ function num(value, fallback) {
 
 export const config = {
   port: num(process.env.PORT, 3000),
-  pollIntervalSeconds: num(process.env.POLL_INTERVAL_SECONDS, 120),
+  pollIntervalSeconds: num(process.env.POLL_INTERVAL_SECONDS, 3600),
   edgeThreshold: num(process.env.EDGE_THRESHOLD, 0.05),
   oddsSource: (process.env.ODDS_SOURCE || "demo").toLowerCase(),
   discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL || "",
@@ -29,4 +29,14 @@ export const config = {
     .filter(Boolean),
   // Book we actually place the bet on.
   targetBook: (process.env.TARGET_BOOK || "sportsbet").trim().toLowerCase(),
+  // Stop auto-scanning once this many API credits remain, to protect your
+  // monthly free-tier quota. Manual "Refresh" can still override.
+  minCreditsReserve: num(process.env.MIN_CREDITS_RESERVE, 20),
 };
+
+/** Credits one oddsapi scan costs: #sports x #markets x #regions. */
+export function creditsPerScan(cfg = config) {
+  const markets = cfg.oddsApiMarkets.split(",").filter(Boolean).length || 1;
+  const regions = cfg.oddsApiRegions.split(",").filter(Boolean).length || 1;
+  return cfg.sports.length * markets * regions;
+}

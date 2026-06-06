@@ -27,8 +27,9 @@ function render(data) {
   const badge = $("source-badge");
   const isReal = data.source === "oddsapi" || data.source === "live";
   const label = data.source === "oddsapi" ? "LIVE · ODDS API" : (data.source ?? "—").toUpperCase();
-  badge.textContent = isReal && data.meta?.creditsRemaining != null
-    ? `${label} · ${data.meta.creditsRemaining} credits left`
+  const credits = data.creditsRemaining ?? data.meta?.creditsRemaining;
+  badge.textContent = isReal && credits != null
+    ? `${label} · ${credits} credits left`
     : label;
   badge.className = "badge " + (isReal ? "live" : "demo");
 

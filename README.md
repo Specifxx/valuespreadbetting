@@ -122,12 +122,18 @@ H2H, every Line/Handicap and every Totals line — across multiple competitions
 that's easily thousands of individual outcomes per scan. Add more sports to
 `SPORTS` to widen coverage (`nba`, `nfl`, `mlb`, `nhl`, `soccer_aleague`, …).
 
-### Quota maths (important)
+### Quota maths + free-tier guard (important)
 Cost per scan = `#sports × #markets × #regions` credits.
-Example: `afl,nrl,nba,soccer_epl` (4) × `h2h,spreads,totals` (3) × `au` (1)
-= **12 credits/scan**. The **free 500/month** is fine for testing or a few
-scans a day, but **continuous polling needs a paid plan**. Tune
-`POLL_INTERVAL_SECONDS` accordingly (e.g. one scan every 15–30 min on free).
+The shipped **free-tier defaults** are `SPORTS=afl,nrl`, `ODDS_API_MARKETS=h2h`,
+`ODDS_API_REGIONS=au` → **2 credits/scan**, polling **once an hour**
+(`POLL_INTERVAL_SECONDS=3600`). That comfortably stretches the **free
+500 credits/month** across roughly a week and a half of continuous running.
+
+A built-in **budget guard** then auto-pauses scanning once fewer than
+`MIN_CREDITS_RESERVE` (default 20) credits remain, so you can never get silently
+drained. The header shows live **credits left**, and the **Refresh** button
+forces a scan even while paused. To scan more often, add more sports/markets, or
+run 24/7, raise the interval back down and grab a cheap paid plan.
 
 ### About bet365 availability
 bet365 isn't always present for every AU market in the feed. `REFERENCE_BOOK`

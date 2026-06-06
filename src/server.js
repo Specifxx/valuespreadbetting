@@ -20,14 +20,17 @@ export function createServer() {
       lastError: state.lastError,
       source: state.source,
       meta: state.meta,
+      creditsRemaining: state.creditsRemaining,
+      budgetPaused: state.budgetPaused,
       eventsCompared: state.eventsCompared,
       config: state.config,
     });
   });
 
   // API: trigger an immediate rescan (e.g. the "Refresh" button).
+  // Manual scans force past the credit-budget guard.
   app.post("/api/scan", async (_req, res) => {
-    const opps = await runScan();
+    const opps = await runScan({ force: true });
     res.json({ ok: true, found: opps.length, lastError: state.lastError });
   });
 

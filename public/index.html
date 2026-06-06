@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Value Spread Betting · bet365 vs sportsbet</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◆</span>
+        <div>
+          <h1>Value Spread Betting</h1>
+          <p class="tagline">bet365 = gold standard · bet on sportsbet.com.au</p>
+        </div>
+      </div>
+      <div class="actions">
+        <span id="source-badge" class="badge">—</span>
+        <button id="refresh" class="btn">↻ Refresh</button>
+      </div>
+    </header>
+
+    <section class="stats">
+      <div class="stat">
+        <span class="stat-label">Opportunities (≥ <span id="threshold">5</span>% edge)</span>
+        <span class="stat-value" id="opp-count">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Events compared</span>
+        <span class="stat-value" id="events-count">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Best edge</span>
+        <span class="stat-value good" id="best-edge">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Discord alerts</span>
+        <span class="stat-value" id="discord-state">—</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Last scan</span>
+        <span class="stat-value" id="last-scan">—</span>
+      </div>
+    </section>
+
+    <div id="error-banner" class="error-banner hidden"></div>
+
+    <main>
+      <table class="opps">
+        <thead>
+          <tr>
+            <th>Edge</th>
+            <th>Event</th>
+            <th>Market</th>
+            <th>Back this</th>
+            <th>Sportsbet</th>
+            <th>bet365</th>
+            <th>True prob</th>
+            <th>Kelly</th>
+            <th>Kickoff</th>
+          </tr>
+        </thead>
+        <tbody id="opps-body">
+          <tr><td colspan="9" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </main>
+
+    <footer class="explainer">
+      <h3>How the edge is calculated</h3>
+      <p>
+        bet365's odds are treated as the true market. We strip bet365's
+        bookmaker margin to get the real win probability
+        <code>p = (1 / bet365_odds) ÷ market_overround</code>, then compute the
+        expected value of backing the same outcome on sportsbet:
+        <code>edge = p × sportsbet_odds − 1</code>. A row appears only when that
+        edge is at least the configured threshold. Bigger sportsbet odds than
+        bet365's fair price = sportsbet has mispriced it in your favour.
+      </p>
+      <p class="disclaimer">
+        Odds move fast and books limit/void winning value bettors. This is an
+        analysis tool, not financial advice. Bet responsibly.
+      </p>
+    </footer>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

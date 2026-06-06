@@ -1,0 +1,21 @@
+{
+  "name": "valuespreadbetting",
+  "version": "1.0.0",
+  "description": "Compare bet365 (gold standard) odds against sportsbet.com.au to surface value-betting opportunities, with Discord alerts.",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test",
+    "scan": "node src/scan-once.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}

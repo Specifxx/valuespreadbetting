@@ -23,6 +23,7 @@ export function createServer() {
       creditsRemaining: state.creditsRemaining,
       budgetPaused: state.budgetPaused,
       eventsCompared: state.eventsCompared,
+      booksCompared: state.booksCompared,
       config: state.config,
     });
   });

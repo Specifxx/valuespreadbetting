@@ -60,8 +60,12 @@ function toEmbed(opp) {
     color: 0x2ecc71,
     fields: [
       { name: "Edge", value: `**+${opp.edgePct}%**`, inline: true },
-      { name: "Sportsbet", value: `@ ${opp.sportsbetOdds}`, inline: true },
-      { name: "bet365 (fair)", value: `@ ${opp.bet365Odds}`, inline: true },
+      { name: `Bet at ${opp.book}`, value: `@ ${opp.targetOdds}`, inline: true },
+      {
+        name: `${opp.referenceBook} (fair)`,
+        value: `@ ${opp.referenceOdds}`,
+        inline: true,
+      },
       {
         name: "True win prob",
         value: `${(opp.trueProbability * 100).toFixed(1)}%`,
@@ -74,7 +78,9 @@ function toEmbed(opp) {
       },
       { name: "Kickoff", value: kickoff, inline: true },
     ],
-    footer: { text: "bet365 = gold standard · place bet on sportsbet.com.au" },
+    footer: {
+      text: `${opp.referenceBook} = gold standard · place bet at ${opp.book}`,
+    },
     timestamp: opp.detectedAt,
   };
 }

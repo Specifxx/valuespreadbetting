@@ -102,5 +102,27 @@ export function getDemoSnapshot() {
     },
   ];
 
-  return { bet365, sportsbet };
+  // A second AU book (TAB) — demonstrates multi-book scanning. It prices
+  // Geelong more generously than bet365's fair line, so at a 3% threshold a
+  // value bet shows up on TAB that sportsbet didn't offer.
+  const tab = [
+    {
+      sport: "afl",
+      league: "AFL",
+      homeTeam: "Geelong Cats",
+      awayTeam: "Sydney Swans",
+      commenceTime: inHours(72),
+      markets: [h2h(1.78, null, 2.25, "Geelong Cats", "Sydney Swans")],
+    },
+    {
+      sport: "nrl",
+      league: "NRL",
+      homeTeam: "Penrith Panthers",
+      awayTeam: "Brisbane Broncos",
+      commenceTime: inHours(28),
+      markets: [h2h(1.8, null, 2.1, "Penrith Panthers", "Brisbane Broncos")],
+    },
+  ];
+
+  return { bet365, sportsbet, tab };
 }

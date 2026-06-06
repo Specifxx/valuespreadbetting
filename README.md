@@ -72,16 +72,16 @@ npm run scan
 | --- | --- | --- |
 | `PORT` | Web server port | `3000` |
 | `POLL_INTERVAL_SECONDS` | How often to rescan odds | `120` |
-| `EDGE_THRESHOLD` | Minimum edge to count (`0.05` = 5%) | `0.05` |
+| `EDGE_THRESHOLD` | Minimum edge to count (`0.03` = 3%) | `0.03` |
 | `ODDS_SOURCE` | `demo`, `oddsapi` (recommended), or `live` | `demo` |
 | `DISCORD_WEBHOOK_URL` | Discord Incoming Webhook (blank = off) | — |
-| `SPORTS` | Comma list, e.g. `afl,nrl,nba,soccer_epl` | `afl,nrl,soccer_epl` |
+| `SPORTS` | Comma list, e.g. `afl,nrl,nba,soccer_epl` | `afl,nrl` |
 | `DEVIG_METHOD` | `multiplicative` or `none` | `multiplicative` |
 | `ODDS_API_KEY` | the-odds-api.com key (for `oddsapi` mode) | — |
 | `ODDS_API_REGIONS` | Books region(s): `au`, or `au,uk` | `au` |
-| `ODDS_API_MARKETS` | `h2h,spreads,totals` (any subset) | `h2h,spreads,totals` |
+| `ODDS_API_MARKETS` | `h2h,spreads,totals` (any subset) | `h2h` |
 | `REFERENCE_BOOK` | Gold-standard book priority list | `bet365,pinnacle` |
-| `TARGET_BOOK` | Book you place the bet on | `sportsbet` |
+| `TARGET_BOOKS` | AU books to hunt value on (comma list) | `sportsbet,tab,neds,…` |
 
 ### Discord alerts
 1. Discord → **Server Settings → Integrations → Webhooks → New Webhook**.
@@ -116,10 +116,17 @@ engine correctly surfaces only the genuine value (e.g. Cronulla @ 3.25 over
 bet365's 2.90 = **+6.8%**) and rejects the games that merely *look* like edges
 until you remove bet365's margin.
 
+### Many Australian books (free)
+`TARGET_BOOKS` lists every AU book to hunt value on — Sportsbet, TAB, Neds,
+Ladbrokes, PointsBet, Unibet, BetRight, BlueBet, TABtouch, TopSport, PlayUp.
+The dashboard's **Bet at** column tells you which book to place each bet at.
+Crucially, **adding more books costs zero extra API credits** — one request
+already returns every bookmaker — so widening the panel only finds more value.
+
 ### Markets & "thousands of markets"
 Each sport returns every upcoming + in-play fixture, and for each you analyse
-H2H, every Line/Handicap and every Totals line — across multiple competitions
-that's easily thousands of individual outcomes per scan. Add more sports to
+H2H, every Line/Handicap and every Totals line, across ~11 books — that's
+easily thousands of individual comparisons per scan. Add more sports to
 `SPORTS` to widen coverage (`nba`, `nfl`, `mlb`, `nhl`, `soccer_aleague`, …).
 
 ### Quota maths + free-tier guard (important)

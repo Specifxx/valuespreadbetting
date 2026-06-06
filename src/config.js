@@ -8,7 +8,7 @@ function num(value, fallback) {
 export const config = {
   port: num(process.env.PORT, 3000),
   pollIntervalSeconds: num(process.env.POLL_INTERVAL_SECONDS, 3600),
-  edgeThreshold: num(process.env.EDGE_THRESHOLD, 0.05),
+  edgeThreshold: num(process.env.EDGE_THRESHOLD, 0.03),
   oddsSource: (process.env.ODDS_SOURCE || "demo").toLowerCase(),
   discordWebhookUrl: process.env.DISCORD_WEBHOOK_URL || "",
   devigMethod: (process.env.DEVIG_METHOD || "multiplicative").toLowerCase(),
@@ -27,8 +27,15 @@ export const config = {
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean),
-  // Book we actually place the bet on.
-  targetBook: (process.env.TARGET_BOOK || "sportsbet").trim().toLowerCase(),
+  // Books we look for value on (we bet at whichever offers the edge).
+  // Adding more AU books costs NO extra API credits — one request returns all.
+  targetBooks: (
+    process.env.TARGET_BOOKS ||
+    "sportsbet,tab,neds,ladbrokes_au,pointsbetau,unibet,betright,bluebet,tabtouch,topsport,playup"
+  )
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
   // Stop auto-scanning once this many API credits remain, to protect your
   // monthly free-tier quota. Manual "Refresh" can still override.
   minCreditsReserve: num(process.env.MIN_CREDITS_RESERVE, 20),

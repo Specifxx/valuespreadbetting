@@ -18,9 +18,12 @@ function render(data) {
 
   // stats
   $("opp-count").textContent = opps.length;
-  $("events-count").textContent = data.eventsCompared ?? "—";
+  $("events-count").textContent =
+    data.eventsCompared != null
+      ? `${data.eventsCompared} × ${data.booksCompared ?? 0}`
+      : "—";
   $("best-edge").textContent = opps.length ? `+${opps[0].edgePct}%` : "—";
-  $("threshold").textContent = ((data.config?.edgeThreshold ?? 0.05) * 100).toFixed(0);
+  $("threshold").textContent = ((data.config?.edgeThreshold ?? 0.03) * 100).toFixed(0);
   $("discord-state").textContent = data.config?.discordEnabled ? "ON" : "OFF";
   $("last-scan").textContent = data.lastScan ? timeAgo(data.lastScan) : "—";
 
@@ -46,7 +49,7 @@ function render(data) {
   // table
   const body = $("opps-body");
   if (opps.length === 0) {
-    body.innerHTML = `<tr><td colspan="9" class="empty">No value bets at or above the edge threshold right now.</td></tr>`;
+    body.innerHTML = `<tr><td colspan="10" class="empty">No value bets at or above the edge threshold right now.</td></tr>`;
     return;
   }
 
@@ -59,8 +62,9 @@ function render(data) {
         <td>${o.inPlay ? '<span class="live-tag">● LIVE</span> ' : ""}${escapeHtml(o.event)}<div class="muted">${o.sport.toUpperCase()}${o.league ? " · " + escapeHtml(o.league) : ""}</div></td>
         <td>${escapeHtml(o.market)}</td>
         <td><strong>${escapeHtml(o.selection)}</strong></td>
-        <td class="odds sb">${o.sportsbetOdds.toFixed(2)}</td>
-        <td class="odds muted">${o.bet365Odds.toFixed(2)}</td>
+        <td><span class="book-tag">${escapeHtml(o.book)}</span></td>
+        <td class="odds sb">${o.targetOdds.toFixed(2)}</td>
+        <td class="odds muted">${o.referenceOdds.toFixed(2)}</td>
         <td>${(o.trueProbability * 100).toFixed(1)}%</td>
         <td>${(o.kelly * 100).toFixed(1)}%</td>
         <td class="muted">${formatKickoff(o.commenceTime)}</td>

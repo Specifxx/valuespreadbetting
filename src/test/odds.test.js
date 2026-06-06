@@ -91,9 +91,18 @@ test("a favourite priced SHORTER on sportsbet yields no positive edge", () => {
   for (const r of results) assert.ok(r.edge < 0.05);
 });
 
-test("findOpportunities filters by 5% threshold and sorts by edge", () => {
-  const { bet365, sportsbet } = getDemoSnapshot();
-  const opps = findOpportunities(bet365, sportsbet, {
+// Build the standard demo targets list used by the multi-book tests.
+function demoTargets() {
+  const { sportsbet, tab } = getDemoSnapshot();
+  return [
+    { key: "sportsbet", title: "Sportsbet", events: sportsbet },
+    { key: "tab", title: "TAB", events: tab },
+  ];
+}
+
+test("findOpportunities filters by threshold and sorts by edge", () => {
+  const { bet365 } = getDemoSnapshot();
+  const opps = findOpportunities(bet365, demoTargets(), {
     edgeThreshold: 0.05,
     devigMethod: "multiplicative",
   });
@@ -104,17 +113,23 @@ test("findOpportunities filters by 5% threshold and sorts by edge", () => {
   for (let i = 1; i < opps.length; i++) {
     assert.ok(opps[i - 1].edge >= opps[i].edge);
   }
-  // the Collingwood 2.50 example must be the top opportunity
+  // the Collingwood 2.50 example must be the top opportunity, betting Sportsbet
   assert.ok(opps.length >= 1);
   assert.equal(opps[0].selection, "Collingwood");
-  assert.equal(opps[0].sportsbetOdds, 2.5);
+  assert.equal(opps[0].targetOdds, 2.5);
+  assert.equal(opps[0].book, "Sportsbet");
 });
 
-test("the deliberately sub-threshold demo edge is excluded at 5%", () => {
-  const { bet365, sportsbet } = getDemoSnapshot();
-  const opps = findOpportunities(bet365, sportsbet, { edgeThreshold: 0.05 });
-  // Sydney Swans was crafted to sit just under 5% -> should not appear
-  assert.ok(!opps.some((o) => o.selection === "Sydney Swans"));
+test("multi-book: TAB-only value appears at 3% but not at 5%", () => {
+  const { bet365 } = getDemoSnapshot();
+  const at3 = findOpportunities(bet365, demoTargets(), { edgeThreshold: 0.03 });
+  const at5 = findOpportunities(bet365, demoTargets(), { edgeThreshold: 0.05 });
+
+  // Geelong @1.78 on TAB is ~+3.6% value — present at 3%, gone at 5%
+  const geeAt3 = at3.find((o) => o.selection === "Geelong Cats");
+  assert.ok(geeAt3, "expected Geelong value on TAB at 3%");
+  assert.equal(geeAt3.book, "TAB");
+  assert.ok(!at5.some((o) => o.selection === "Geelong Cats"));
 });
 
 test("totals market: de-vigs per line and matches Over/Under by point", () => {
@@ -174,8 +189,8 @@ test("alternate lines in one market are de-vigged independently", () => {
 });
 
 test("lowering the threshold surfaces more opportunities", () => {
-  const { bet365, sportsbet } = getDemoSnapshot();
-  const strict = findOpportunities(bet365, sportsbet, { edgeThreshold: 0.05 });
-  const loose = findOpportunities(bet365, sportsbet, { edgeThreshold: 0.01 });
+  const { bet365 } = getDemoSnapshot();
+  const strict = findOpportunities(bet365, demoTargets(), { edgeThreshold: 0.05 });
+  const loose = findOpportunities(bet365, demoTargets(), { edgeThreshold: 0.01 });
   assert.ok(loose.length >= strict.length);
 });

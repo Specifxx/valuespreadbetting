@@ -148,6 +148,16 @@ table.opps tbody tr:hover { background: var(--panel-2); }
 .odds.sb { color: var(--good); }
 .muted { color: var(--muted); }
 .empty { text-align: center; color: var(--muted); padding: 40px; }
+.book-tag {
+  display: inline-block;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
 .live-tag {
   display: inline-block;
   background: var(--warn);

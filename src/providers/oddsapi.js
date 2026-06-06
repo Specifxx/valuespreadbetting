@@ -43,7 +43,7 @@ const MARKET_NAMES = {
 
 /**
  * @param {object} config
- * @returns {Promise<{bet365: Array, sportsbet: Array, source: string, meta: object}>}
+ * @returns {Promise<{reference: Array, targets: Array, source: string, meta: object}>}
  */
 export async function getOddsApiSnapshot(config) {
   if (!config.oddsApiKey) {
@@ -54,9 +54,10 @@ export async function getOddsApiSnapshot(config) {
   }
 
   const refEvents = [];
-  const targetEvents = [];
+  const targetMap = new Map(); // bookKey -> { key, title, events: [] }
   let remaining = null;
   let inPlayCount = 0;
+  let referenceTitle = config.referenceBooks?.[0] ?? "Reference";
 
   for (const sport of config.sports) {
     const sportKey = SPORT_KEYS[sport] ?? sport;
@@ -80,26 +81,40 @@ export async function getOddsApiSnapshot(config) {
     const now = Date.now();
     for (const ev of events) {
       const ref = pickBook(ev.bookmakers, config.referenceBooks);
-      const tgt = (ev.bookmakers ?? []).find((b) => b.key === config.targetBook);
-      if (!ref || !tgt) continue; // need BOTH books quoting this game
+      if (!ref) continue; // need the gold standard quoting this game
+      referenceTitle = ref.title;
 
       const isLive = new Date(ev.commence_time).getTime() <= now;
       if (isLive) inPlayCount++;
-
       refEvents.push(toCanonical(sport, ev, ref, isLive));
-      targetEvents.push(toCanonical(sport, ev, tgt, isLive));
+
+      // Add a canonical event for every configured target book that's present
+      // (skip the reference book itself — never bet against yourself).
+      for (const book of ev.bookmakers ?? []) {
+        if (book.key === ref.key) continue;
+        if (!config.targetBooks.includes(book.key)) continue;
+        if (!targetMap.has(book.key)) {
+          targetMap.set(book.key, { key: book.key, title: book.title, events: [] });
+        }
+        targetMap.get(book.key).events.push(toCanonical(sport, ev, book, isLive));
+      }
     }
   }
 
+  const targets = [...targetMap.values()];
   if (remaining != null) {
-    console.log(`[oddsapi] ${refEvents.length} matched events (${inPlayCount} in-play) · credits remaining: ${remaining}`);
+    console.log(
+      `[oddsapi] ${refEvents.length} ref events · ${targets.length} books ` +
+        `(${inPlayCount} in-play) · credits remaining: ${remaining}`,
+    );
   }
 
   return {
-    bet365: refEvents,
-    sportsbet: targetEvents,
+    reference: refEvents,
+    referenceTitle,
+    targets,
     source: "oddsapi",
-    meta: { creditsRemaining: remaining, inPlayCount },
+    meta: { creditsRemaining: remaining, inPlayCount, booksCompared: targets.length },
   };
 }
 

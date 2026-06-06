@@ -27,7 +27,7 @@
         <span class="stat-value" id="opp-count">—</span>
       </div>
       <div class="stat">
-        <span class="stat-label">Events compared</span>
+        <span class="stat-label">Events × books</span>
         <span class="stat-value" id="events-count">—</span>
       </div>
       <div class="stat">
@@ -47,7 +47,7 @@
     <div id="demo-banner" class="info-banner hidden">
       ⚠️ Showing <strong>sample/demo data</strong> — these are not real odds. Set
       <code>ODDS_SOURCE=oddsapi</code> and <code>ODDS_API_KEY</code> in your
-      <code>.env</code> to analyse real bet365 vs sportsbet markets.
+      <code>.env</code> to analyse real bet365 vs Australian books.
     </div>
     <div id="error-banner" class="error-banner hidden"></div>
 
@@ -59,15 +59,16 @@
             <th>Event</th>
             <th>Market</th>
             <th>Back this</th>
-            <th>Sportsbet</th>
-            <th>bet365</th>
+            <th>Bet at</th>
+            <th>Their odds</th>
+            <th>bet365 fair</th>
             <th>True prob</th>
             <th>Kelly</th>
             <th>Kickoff</th>
           </tr>
         </thead>
         <tbody id="opps-body">
-          <tr><td colspan="9" class="empty">Loading…</td></tr>
+          <tr><td colspan="10" class="empty">Loading…</td></tr>
         </tbody>
       </table>
     </main>

@@ -16,6 +16,7 @@ export const state = {
   lastError: null,
   source: config.oddsSource,
   eventsCompared: 0,
+  booksCompared: 0,
   meta: {},
   creditsRemaining: null, // last-known API credits (oddsapi mode)
   budgetPaused: false, // auto-scan paused to protect free-tier quota
@@ -23,7 +24,7 @@ export const state = {
     creditsPerScan: config.oddsSource === "oddsapi" ? creditsPerScan(config) : null,
     minCreditsReserve: config.minCreditsReserve,
     referenceBook: config.referenceBooks?.[0] ?? null,
-    targetBook: config.targetBook,
+    targetBooks: config.targetBooks,
     markets: config.oddsApiMarkets,
     edgeThreshold: config.edgeThreshold,
     devigMethod: config.devigMethod,
@@ -55,10 +56,12 @@ export async function runScan(opts = {}) {
   }
 
   try {
-    const { bet365, sportsbet, source, meta } = await getSnapshot(config);
-    const opportunities = findOpportunities(bet365, sportsbet, {
+    const { reference, referenceTitle, targets, source, meta } =
+      await getSnapshot(config);
+    const opportunities = findOpportunities(reference, targets, {
       edgeThreshold: config.edgeThreshold,
       devigMethod: config.devigMethod,
+      referenceTitle,
     });
 
     state.opportunities = opportunities;
@@ -71,7 +74,8 @@ export async function runScan(opts = {}) {
       const n = Number(meta.creditsRemaining);
       state.creditsRemaining = Number.isFinite(n) ? n : state.creditsRemaining;
     }
-    state.eventsCompared = Math.min(bet365.length, sportsbet.length);
+    state.eventsCompared = reference.length;
+    state.booksCompared = targets.length;
 
     // Discord: only NEW opportunities.
     await pruneOld(48);

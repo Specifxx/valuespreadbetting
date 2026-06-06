@@ -123,11 +123,22 @@ The dashboard's **Bet at** column tells you which book to place each bet at.
 Crucially, **adding more books costs zero extra API credits** — one request
 already returns every bookmaker — so widening the panel only finds more value.
 
+### Niche sports (where the value is)
+The default `SPORTS` list is deliberately **niche** — lower divisions and
+small-nation leagues (Norwegian/Swedish/Finnish/Danish soccer, second
+divisions, Scandinavian hockey, …). Obscure markets are priced less
+efficiently by soft books, so 3%+ edges turn up far more often there than in
+the EPL or NBA. Pinnacle (the reference fallback) is especially strong on these.
+
+**In-season auto-skip:** The Odds API's sports list is **free** (0 credits), so
+the app checks it first and only spends credits on leagues that actually have
+games on right now. That means you can list 20+ niche leagues without burning
+quota on the dozen that are currently off-season.
+
 ### Markets & "thousands of markets"
-Each sport returns every upcoming + in-play fixture, and for each you analyse
-H2H, every Line/Handicap and every Totals line, across ~11 books — that's
-easily thousands of individual comparisons per scan. Add more sports to
-`SPORTS` to widen coverage (`nba`, `nfl`, `mlb`, `nhl`, `soccer_aleague`, …).
+Each in-season league returns every upcoming + in-play fixture, compared across
+~11 books. Niche soccer is mostly Head-to-Head (1 credit/sport); add
+`spreads,totals` in `ODDS_API_MARKETS` for sports that offer them.
 
 ### Quota maths + free-tier guard (important)
 Cost per scan = `#sports × #markets × #regions` credits.

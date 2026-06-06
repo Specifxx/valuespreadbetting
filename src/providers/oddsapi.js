@@ -42,6 +42,25 @@ const MARKET_NAMES = {
 };
 
 /**
+ * Fetch the set of currently-active (in-season) sport keys. This call is FREE
+ * (does not count against the credit quota), so we use it to avoid spending
+ * credits on niche leagues that have no games on right now. Returns null if the
+ * call fails, in which case we don't filter.
+ */
+async function getActiveSportKeys(apiKey) {
+  try {
+    const url = `${BASE}/sports/?apiKey=${encodeURIComponent(apiKey)}`;
+    const { body } = await getJsonMeta(url, { timeoutMs: 12000 });
+    const active = new Set();
+    for (const s of body ?? []) if (s.active) active.add(s.key);
+    return active;
+  } catch (err) {
+    console.warn(`[oddsapi] could not load active sports list: ${err.message}`);
+    return null;
+  }
+}
+
+/**
  * @param {object} config
  * @returns {Promise<{reference: Array, targets: Array, source: string, meta: object}>}
  */
@@ -59,8 +78,16 @@ export async function getOddsApiSnapshot(config) {
   let inPlayCount = 0;
   let referenceTitle = config.referenceBooks?.[0] ?? "Reference";
 
+  // Free pre-check: only spend credits on sports that are in season right now.
+  const activeKeys = await getActiveSportKeys(config.oddsApiKey);
+  let skippedOffSeason = 0;
+
   for (const sport of config.sports) {
     const sportKey = SPORT_KEYS[sport] ?? sport;
+    if (activeKeys && !activeKeys.has(sportKey)) {
+      skippedOffSeason++;
+      continue; // out of season -> no games -> don't waste a credit
+    }
     const url =
       `${BASE}/sports/${sportKey}/odds/` +
       `?apiKey=${encodeURIComponent(config.oddsApiKey)}` +
@@ -102,19 +129,23 @@ export async function getOddsApiSnapshot(config) {
   }
 
   const targets = [...targetMap.values()];
-  if (remaining != null) {
-    console.log(
-      `[oddsapi] ${refEvents.length} ref events · ${targets.length} books ` +
-        `(${inPlayCount} in-play) · credits remaining: ${remaining}`,
-    );
-  }
+  console.log(
+    `[oddsapi] ${refEvents.length} ref events · ${targets.length} books ` +
+      `(${inPlayCount} in-play) · ${skippedOffSeason} sports skipped (off-season)` +
+      (remaining != null ? ` · credits remaining: ${remaining}` : ""),
+  );
 
   return {
     reference: refEvents,
     referenceTitle,
     targets,
     source: "oddsapi",
-    meta: { creditsRemaining: remaining, inPlayCount, booksCompared: targets.length },
+    meta: {
+      creditsRemaining: remaining,
+      inPlayCount,
+      booksCompared: targets.length,
+      skippedOffSeason,
+    },
   };
 }
 
